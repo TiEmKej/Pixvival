@@ -5,52 +5,45 @@ using UnityEngine.InputSystem;
 
 public class PlayerScript : MonoBehaviour
 {
-    public Rigidbody2D playerRigidbody;
-    public BoxCollider2D playerCollider;
+    //Components
+    Rigidbody2D playerRB;
 
-    private float horSpeed;
-    private float verSpeed;
-    private float horizontal;
-    private float vertical;
-    private bool isFacingRight = true;
-    private float playerSpeed = 5.0f;
+    //Variables
+    float playerSpeed = 5.0f;
+    float horizontalMoveInput;
+    float verticalMoveInput;
+    bool isFacingRight = true;
 
-    void Start()
+    private void Start()
     {
-        playerRigidbody = GetComponent<Rigidbody2D>();
-        playerCollider = GetComponent<BoxCollider2D>();
+        playerRB = GetComponent<Rigidbody2D>();
     }
 
-
-    void Update()
+    private void Update()
     {
-        if (!isFacingRight && horizontal > 0f)
-        {
-            FlipCharacter();
-        }
-        else if (isFacingRight && horizontal < 0f)
-        {
-            FlipCharacter();
-        }
+        
     }
 
     private void FixedUpdate()
     {
-        playerRigidbody.velocity = new Vector2(horizontal * playerSpeed, vertical * playerSpeed);
-    }
-
-    private void FlipCharacter()
-    {
-        isFacingRight = !isFacingRight;
-        Vector3 localScale = transform.localScale;
-        localScale.x *= -1f;
-        transform.localScale = localScale;
+        playerRB.velocity = new Vector2(horizontalMoveInput * playerSpeed, verticalMoveInput * playerSpeed);
     }
 
     public void Move(InputAction.CallbackContext context)
     {
-        horizontal = context.ReadValue<Vector2>().x;
-        vertical = context.ReadValue<Vector2>().y;
+        horizontalMoveInput = context.ReadValue<Vector2>().x;
+        verticalMoveInput = context.ReadValue<Vector2>().y;
+        CharacterFlip();
     }
-    
+
+    public void CharacterFlip()
+    {
+        if(isFacingRight && horizontalMoveInput < 0f || !isFacingRight && horizontalMoveInput > 0f)
+        {
+            isFacingRight = !isFacingRight;
+            Vector3 localScale = transform.localScale;
+            localScale.x *= -1f;
+            transform.localScale = localScale;
+        }
+    }
 }
