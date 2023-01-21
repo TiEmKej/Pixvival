@@ -1,35 +1,26 @@
-using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.UI;
 
-public class MapGenerator : MonoBehaviour
+public class GenerationBackupScript : MonoBehaviour
 {
     public Tilemap tilemap;
     public RuleTile landTile;
     public Tile waterTile;
     public int mapSize = 400;
     public float noiseScale = 0.05f;
-    public float thresholdLand = 0.35f;
-    public float thresholdTreeMax = 0.65f;
-    public float thresholdTreeMin = 0.55f;
+    public float threshold = 0.35f;
     public int islandRadius = 175;
-    public Object treeObject;
-    public Transform treeGroup;
-
-    public string seed = "0";
-    public int curSeed;
 
     private float[,] noiseMap;
 
     void Start()
     {
-        //curSeed = seed.GetHashCode();
-        //Random.InitState(curSeed);
         noiseMap = new float[mapSize, mapSize];
         GenerateNoiseMap();
         GenerateMap();
-        GenerateTree();
+        //CheckConstantTile();
     }
     void GenerateNoiseMap()
     {
@@ -37,7 +28,7 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = 0; y < mapSize; y++)
             {
-                noiseMap[x, y] = Mathf.PerlinNoise(((float)x + curSeed) * noiseScale, ((float)y + curSeed) * noiseScale);
+                noiseMap[x, y] = Mathf.PerlinNoise((float)x * noiseScale, (float)y * noiseScale);
             }
         }
     }
@@ -54,32 +45,33 @@ public class MapGenerator : MonoBehaviour
                 {
                     tilemap.SetTile(new Vector3Int(x - mapSize / 2, y - mapSize / 2, 0), waterTile);
                 }
-                else if (noiseMap[x, y] < thresholdLand)
+                else if (noiseMap[x, y] < threshold)
                 {
                     tilemap.SetTile(new Vector3Int(x - mapSize / 2, y - mapSize / 2, 0), waterTile);
                 }
                 else
                 {
                     tilemap.SetTile(new Vector3Int(x - mapSize / 2, y - mapSize / 2, 0), landTile);
-                    
                 }
             }
         }
     }
-
-    void GenerateTree()
+    //Obecnie nie u¿ywane
+    void CheckConstantTile()
     {
         for (int x = 0; x < mapSize; x++)
         {
             for (int y = 0; y < mapSize; y++)
             {
-                if (noiseMap[x, y] > thresholdTreeMin && noiseMap[x, y] > thresholdTreeMax && tilemap.GetTile(new Vector3Int(x - mapSize / 2, y - mapSize / 2, 0)) == landTile)
+                TileBase tempTile = tilemap.GetTile(new Vector3Int(x, y, 0));
+                if (tempTile == waterTile)
                 {
-                    Instantiate(treeObject, new Vector3(x - mapSize / 2, y - mapSize / 2, 0), Quaternion.identity, treeGroup);
+                    if (tilemap.GetTile(new Vector3Int(x + 1, y, 0)) == landTile && tilemap.GetTile(new Vector3Int(x - 1, y, 0)) == landTile && tilemap.GetTile(new Vector3Int(x, y - 1, 0)) == landTile && tilemap.GetTile(new Vector3Int(x, y + 1, 0)) == landTile)
+                    {
+                        tilemap.SetTile(new Vector3Int(x, y, 0), landTile);
+                    }
                 }
             }
         }
     }
 }
-
-
